@@ -1,0 +1,102 @@
+<script type="text/javascript" src="jquery-1.7.2.js"></script>
+<script type="text/javascript" src="underscore.js"></script>
+<script type="text/javascript" src="backbone.js"></script>
+<script type="text/javascript" src="views.js"></script>
+
+<script type="text/javascript">
+  jQuery(document).ready(function() {
+      var SmApp = chrome.extension.getBackgroundPage().SmApp;
+
+  SmApp.run();  
+
+  bookmark_listing = new SmApp.Views.Bookmark_List({
+  el: "#popup-bm-list",
+  collection: SmApp.getAllBookmarks(),
+  });
+
+  bookmark_listing.render();
+
+  jQuery('#bookmark-this-tab').click(function() {
+     jQuery('body').empty();
+
+    var tmplt = _.template(jQuery('#new-bookmark').html());
+  
+    var current_tab = {}
+   
+    chrome.tabs.getSelected(null, function(the_tab) {
+	current_tab['title'] = the_tab.title;
+        current_tab['url']   = the_tab.url;
+
+      if (jQuery('body').append(tmplt({ active_tab: current_tab }))) {
+	jQuery('body input[name="tags"]').focus();
+      }
+  });
+
+    jQuery('#add-new-bookmark').live('click', function() {
+	var $body = jQuery('body');
+
+	jQuery.ajax({
+	  url: SmApp._getApiUrl() + '/' + 'bookmark/add',
+	      type: 'POST',
+	      data: { url: jQuery('input[name="url"]').val(),
+		title: jQuery('input[name="title"]').val(),
+		tags: jQuery('input[name="tags"]').val()
+		},
+	      success: function(resp) {
+	      $body.empty();
+	      bookmark_listing = new SmApp.Views.Bookmark_List({
+  el: "#popup-bm-list",
+  collection: SmApp.getAllBookmarks(),
+  });
+
+	      bookmark_listing.render();
+	    }
+	  });
+      });
+  });
+
+jQuery('.bookmark-link').click(function() {
+  chrome.tabs.create({
+    url: jQuery(this).attr('href')
+  });
+  return false;
+});
+
+
+
+  });
+</script>
+
+<script type="text/template" id="new-bookmark">
+  <input type="text" name="title" value="<%= active_tab.title %>" /><br />
+  <input type="text" name="url"  value="<%= active_tab.url %>" /><br />
+  <input type="text" name="tags" value="" /><br />
+  <input type="submit" value="Bookmark" id="add-new-bookmark" />
+</script>
+
+<script type="text/template" id="bookmarks-listing">
+  <div>
+    <% _.each(bookmarks, function(bookmark) { %>
+       <div id="bookmark-<%= bookmark.id %>" style="padding-bottom:8px;">
+           <a class="bookmark-link" href="<%= bookmark.url %>" data-read="<%= bookmark.read %>"><%= bookmark.title %></a>
+	   <br />
+	   <span>
+	     <%= bookmark.tag_names.join(', ') %>
+	     </span>
+       </div>
+    <% }); %>
+  </div>
+</script>
+
+<script type="text/template" id="tag-bookmarks-listing">
+
+ 
+
+</script>
+
+<body class="foo" style="min-width:250px;">
+
+<a href="#" id="bookmark-this-tab">Bookmark this Tab</a>
+
+<div id="popup-bm-list"></div>
+</body>

@@ -1,0 +1,13 @@
+{
+  "name" : "Simplemark",
+  "version" : "1.0",
+  "description" : "Bookmarks, simpler.",
+  "permissions": [ "tabs", "http://*/*", "https://*/*", "http://216.70.85.115:8080*" ],
+  "icons": { "16": "simplemark.png", "48": "simplemark.png", "128": "simplemark.png" },
+  "browser_action": {
+    "default_icon":  "simplemark.png",
+    "default_popup": "popup.html",
+    "default_title": "Simplemark"
+  },
+  "background_page": "background.html"
+}

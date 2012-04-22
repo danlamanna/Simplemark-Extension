@@ -1,0 +1,73 @@
+<script type="text/javascript" src="jquery-1.7.2.js"></script>
+<script type="text/javascript" src="underscore.js"></script>
+<script type="text/javascript" src="backbone.js"></script>
+
+<script type="text/javascript">
+
+  var SmApp = {
+      Models: {},
+  Collections: {},
+  Views: {},
+  _data: {},
+
+  _setData: function(key, val) {
+     this._data[key] = val;
+  },
+
+  getData: function(key) {
+    if (this._data[key]) {
+      return this._data[key];
+    } else {
+      return false;
+    }
+  },
+
+  hasData: function(key) {
+     return (this._data[key]) ? true : false;
+  },
+
+  _getApiUrl: function() {
+    return 'http://216.70.85.115:8080/api';
+  },
+
+  _ajaxCall: function(uri, callback) {
+     callback = _.bind(callback, this);
+
+     jQuery.ajax({
+       cache: true,
+       async: true,       
+       dataType: 'json',
+       url: this._getApiUrl() + "/" + uri,
+       success: callback
+     });
+  },
+
+  getAllBookmarks: function() {
+     this._ajaxCall('bookmarks', function(resp) {
+        this._setData('allBookmarks', new SmApp.Collections.Bookmark(resp.data, {
+             model: SmApp.Models.Bookmark
+        }));
+     });
+
+     return this.getData('allBookmarks');
+  },
+
+  run: function() {
+  this.Models.Bookmark = Backbone.Model.extend({
+  initialize: function() {
+  tag_names = []
+
+  tags = this.get('tags');
+  for (i in tags) {
+    tag_names[i] = tags[i].name;
+  }
+
+  this.set('tag_names', tag_names);
+  }
+  });
+  this.Collections.Bookmark = Backbone.Collection.extend({ model: this.Models.Bookmark });
+
+  this.getAllBookmarks();
+  }
+};
+</script>
